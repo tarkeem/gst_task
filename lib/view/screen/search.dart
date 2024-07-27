@@ -10,26 +10,26 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
-    String? _city;
+    final formKey = GlobalKey<FormState>();
+    String? city;
     AutovalidateMode autovalidateMode = AutovalidateMode.disabled;
-    void _submit() {
+    void submit() {
       setState(() {
         autovalidateMode = AutovalidateMode.always;
       });
 
-      final form = _formKey.currentState;
+      final form = formKey.currentState;
 
       if (form != null && form.validate()) {
         form.save();
-        Navigator.pop(context, _city!.trim());
+        Navigator.pop(context, city!.trim());
       }
     }
 
     return Scaffold(
       appBar: AppBar(centerTitle: true, title: const Text('Search')),
       body: Form(
-        key: _formKey,
+        key: formKey,
         autovalidateMode: autovalidateMode,
         child: Column(
           children: [
@@ -46,19 +46,19 @@ class _SearchPageState extends State<SearchPage> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (String? input) {
-                  if (input == null || input.trim().length < 2) {
+                  if (input == null || input.trim().length < 2||input=="") {
                     return 'Please Enter The Name of the City';
                   }
                   return null;
                 },
                 onSaved: (String? input) {
-                  _city = input;
+                  city = input;
                 },
               ),
             ),
             const SizedBox(height: 20.0),
             ElevatedButton(
-              onPressed: _submit,
+              onPressed: submit,
               child: const Text(
                 "What's The weather Today?",
                 style: TextStyle(

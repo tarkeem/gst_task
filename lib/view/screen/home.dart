@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:recase/recase.dart';
@@ -7,6 +10,7 @@ import 'package:gst_task/view/screen/search.dart';
 import 'package:gst_task/view/widgets/error_dialog.dart';
 import 'package:gst_task/view/widgets/forecastWid.dart';
 import 'package:lottie/lottie.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -17,19 +21,50 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
+   late ConnectivityResult _connectionStatus;
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
   String? _city;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    _connectionStatus = ConnectivityResult.none;
+    _initConnectivity();
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
     context.read<WeatherCubit>().fetchWeather('cairo');
   }
+
+Future<void> _initConnectivity() async {
+    ConnectivityResult result;
+    try {
+      result = await _connectivity.checkConnectivity();
+    } catch (e) {
+      result = ConnectivityResult.none;
+    }
+    if (!mounted) {
+      return;
+    }
+
+    _updateConnectionStatus(result);
+  }
+
+  void _updateConnectionStatus(ConnectivityResult result) {
+    setState(() {
+      _connectionStatus = result;
+    });
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text('tarek'),
+        title: const Text('By:tarek'),
         actions: [
           IconButton(
               onPressed: () async {
@@ -45,8 +80,19 @@ class _HomePageState extends State<HomePage> {
           
         ],
       ),
-      body: _content(),
+      body:(_connectionStatus==ConnectivityResult.none)?_nointernet() : _content(),
     );
+  }
+
+  Widget _nointernet()
+  {
+    return const Center(child: Text(
+              "No Internet",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 40.0,
+                fontWeight: FontWeight.bold,
+              ),),);
   }
 
   String showTemp(double temperature) {
@@ -175,7 +221,7 @@ class _HomePageState extends State<HomePage> {
             
             SizedBox(
               width: double.infinity,
-              height: 100,
+              height: 200,
               child: ListView.builder(
 
                 itemCount: 5,
@@ -187,7 +233,7 @@ class _HomePageState extends State<HomePage> {
                     color: const Color.fromARGB(255, 207, 207, 207),
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: ForecastWid('Day ${index+1}',weth.temp.toString(),weth.description),
+                      child: ForecastWid('Day ${index+1}',weth.temp.toString(),weth.description,weth.icon),
                     ));} ,),
             )
           ],
